@@ -121,17 +121,29 @@ export default function HomePage() {
             </div> */}
 
             {/* Cost Input */}
-            <div className="text-center">
-              <div className="text-4xl font-bold text-gray-800 mb-2">
-                R{costValue.toFixed(2)}
-              </div>
+            <div className="text-center space-y-2">
+              {/* Name Input */}
+              <input
+                type="text"
+                placeholder="Expense name..."
+                {...register("name")}
+                className="w-full border text-black border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
               <input
                 type="number"
                 step="0.01"
                 placeholder="0.00"
                 {...register("cost", { valueAsNumber: true })}
-                className="w-full text-center text-2xl font-bold text-gray-800 bg-transparent border-none outline-none"
+                className="w-full  text-black text-xl font-bold border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
+
+              <div className="text-4xl font-bold text-gray-800 mb-2">
+                R
+                {typeof costValue === "number" && !isNaN(costValue)
+                  ? costValue.toFixed(2)
+                  : "0.00"}
+              </div>
+
               {errors.cost && (
                 <div className="text-red-500 text-sm mt-1">
                   {errors.cost.message}
@@ -139,13 +151,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Name Input */}
-            <input
-              type="text"
-              placeholder="Expense name..."
-              {...register("name")}
-              className="w-full border text-black border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
             {errors.name && (
               <div className="text-red-500 text-sm mt-1">
                 {errors.name.message}
@@ -173,26 +178,43 @@ export default function HomePage() {
           ) : expenses.length === 0 ? (
             <div className="text-center text-gray-500">No expenses yet</div>
           ) : (
-            <div className="space-y-3">
-              {expenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <div className="font-medium text-gray-800">
-                      {expense.name}
+            <>
+              <div className="space-y-3">
+                {expenses.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium text-gray-800">
+                        {expense.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        ID: {expense.id}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      ID: {expense.id}
+                    <div className="font-bold text-green-600">
+                      R{expense.cost.toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-bold text-green-600">
-                    R{expense.cost.toFixed(2)}
+                ))}
+              </div>
+
+              {/* Total Section */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div className="text-lg font-semibold text-gray-800">
+                    Total
+                  </div>
+                  <div className="text-xl font-bold text-green-600">
+                    R
+                    {expenses
+                      .reduce((sum, expense) => sum + expense.cost, 0)
+                      .toFixed(2)}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </main>
