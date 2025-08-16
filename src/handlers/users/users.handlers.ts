@@ -2,9 +2,7 @@ import { usersTable } from "@/db/schema";
 import { db } from "@/lib/turso";
 import { drizzle } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
-import { desc } from "drizzle-orm";
 
-// use a simple name for the function
 export async function createOrDontUser({
   name,
   email,

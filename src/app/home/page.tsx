@@ -34,7 +34,6 @@ export default function HomePage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    watch,
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -42,8 +41,6 @@ export default function HomePage() {
       cost: 0,
     },
   });
-
-  const costValue = watch("cost");
 
   // Fetch expenses from API
   const fetchExpenses = async () => {
@@ -71,6 +68,7 @@ export default function HomePage() {
     if (session?.access_token) {
       fetchExpenses();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.access_token]);
 
   const logout = async () => {

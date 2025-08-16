@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../utils/supabaseClient";
 import { useAuth } from "../../../components/AuthProvider";
@@ -21,8 +21,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const { session } = useAuth();
   const router = useRouter();
+  const { user } = useAuth();
 
   const emailForm = useForm({
     resolver: zodResolver(emailSchema),
@@ -124,17 +124,15 @@ export default function LoginPage() {
     }
   };
 
-  // Verify OTP
-
-  /*   useEffect(() => {
+  useEffect(() => {
     if (user) {
       router.push("/home");
     }
-  }, [user, router]); */
+  }, [user, router]);
 
-  /*  if (user) {
+  if (user) {
     return null;
-  } */
+  }
 
   return (
     <div className=" mx-auto max-w-md py-10 px-6 sm:py-32">
