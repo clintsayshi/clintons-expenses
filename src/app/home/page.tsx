@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useAuth } from "../../components/AuthProvider";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { useEffect, useState } from "react";
+import { Eye } from "lucide-react";
 import { supabase } from "@/utils/supabaseClient";
 
 // Zod schema for expense form
@@ -18,7 +19,7 @@ type ExpenseFormData = z.infer<typeof expenseSchema>;
 interface Expense {
   id: number;
   name: string;
-  cost: number;
+  amount: number;
   user_id: string;
 }
 
@@ -27,8 +28,6 @@ export default function HomePage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingExpenses, setFetchingExpenses] = useState(true);
-  const supabaseClient = supabase;
-  const [userId, setUserId] = useState("");
 
   const {
     register,
@@ -74,6 +73,15 @@ export default function HomePage() {
     }
   }, [session?.access_token]);
 
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   const onSubmit = async (data: ExpenseFormData) => {
     try {
       setLoading(true);
@@ -83,7 +91,10 @@ export default function HomePage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name,
+          amount: data.cost,
+        }),
       });
 
       if (response.ok) {
@@ -104,72 +115,81 @@ export default function HomePage() {
 
   return (
     <ProtectedRoute>
-      <main className="max-w-md mx-auto p-4">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-lg space-y-4">
-            {/* <div className="flex justify-between space-x-2">
-              <select className="flex-1 bg-blue-100 text-blue-900 font-medium rounded-full px-4 py-2">
-                <option>Cash</option>
-                <option>Card</option>
-                <option>Bank Transfer</option>
-              </select>
-              <select className="flex-1 bg-green-100 text-green-900 font-medium rounded-full px-4 py-2">
-                <option>Shopping</option>
-                <option>Food</option>
-                <option>Gifts</option>
-              </select>
-            </div> */}
+      <main className="max-w-lg mx-auto py-4 p-5 sm:px-0">
+        <header>
+          <nav className="mb-5 flex justify-between items-center">
+            <div className="font-bold border">Xsenses</div>
 
-            {/* Cost Input */}
-            <div className="text-center space-y-2">
-              {/* Name Input */}
-              <input
-                type="text"
-                placeholder="Expense name..."
-                {...register("name")}
-                className="w-full border text-black border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                {...register("cost", { valueAsNumber: true })}
-                className="w-full  text-black text-xl font-bold border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-
-              <div className="text-4xl font-bold text-gray-800 mb-2">
-                R
-                {typeof costValue === "number" && !isNaN(costValue)
-                  ? costValue.toFixed(2)
-                  : "0.00"}
-              </div>
-
-              {errors.cost && (
-                <div className="text-red-500 text-sm mt-1">
-                  {errors.cost.message}
-                </div>
-              )}
-            </div>
-
-            {errors.name && (
-              <div className="text-red-500 text-sm mt-1">
-                {errors.name.message}
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting || loading}
-              className="w-full bg-black text-white font-bold py-3 rounded-xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting || loading ? "Adding..." : "Add Expense"}
+            <button className="font-medium" onClick={logout}>
+              Logout
             </button>
+          </nav>
+        </header>
+
+        <div>
+          <h1 className="text-lg font-medium my-5">Hello, Clinton</h1>
+
+          <div className="hidden mb-2">
+            <div className="bg-white  pb-6 flex flex-col items-start ">
+              <p className="text-gray-500 text-sm">Your balance</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-3xl font-bold">R 3,200.00</h2>
+                <Eye size={20} className="text-gray-400" />
+              </div>
+            </div>
           </div>
-        </form>
+
+          <div className="  ">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="bg-white flex-col sm:flex-row flex gap-2 items-end">
+                <div className="w-full  flex flex-col items-start justify-start">
+                  <label className="text-xs mb-1" id="name">
+                    Expense
+                  </label>
+                  <input
+                    id="name"
+                    {...register("name")}
+                    type="text"
+                    placeholder="Enter expense"
+                    className="w-full border-gray-600 border px-2 py-1 rounded-lg"
+                  />
+                  {errors.name && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {errors.name.message}
+                    </div>
+                  )}
+                </div>
+                <div className=" w-full flex flex-col items-start justify-start">
+                  <label className="text-xs mb-1" id="name">
+                    Cost
+                  </label>
+                  <input
+                    id="cost"
+                    {...register("cost", { valueAsNumber: true })}
+                    type="text"
+                    placeholder="Enter cost"
+                    className="w-full border-gray-600 border px-2 py-1 rounded-lg"
+                  />
+                  {errors.cost && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {errors.cost.message}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || loading}
+                  className=" w-full rounded-lg bg-black border border-black text-white font-medium h-max py-1 px-3"
+                >
+                  {isSubmitting || loading ? "Adding..." : "Add"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
 
         {/* Real Expenses List */}
-        <div className="mt-8 bg-white rounded-2xl p-5 shadow-lg">
+        <div className="mt-8 w-full   bg-white  ">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             Recent Expenses
           </h2>
@@ -189,12 +209,12 @@ export default function HomePage() {
                       <div className="font-medium text-gray-800">
                         {expense.name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-xs text-gray-500">
                         ID: {expense.id}
                       </div>
                     </div>
                     <div className="font-bold text-green-600">
-                      R{expense.cost.toFixed(2)}
+                      R{expense.amount.toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -209,7 +229,7 @@ export default function HomePage() {
                   <div className="text-xl font-bold text-green-600">
                     R
                     {expenses
-                      .reduce((sum, expense) => sum + expense.cost, 0)
+                      .reduce((sum, expense) => sum + expense.amount, 0)
                       .toFixed(2)}
                   </div>
                 </div>
