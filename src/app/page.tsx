@@ -12,7 +12,7 @@ export default function Page() {
       if (user) {
         router.push("/home");
       } else {
-        router.push("/auth");
+        router.push("/auth/login");
       }
     }
   }, [user, loading, router]);
