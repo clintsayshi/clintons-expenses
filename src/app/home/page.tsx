@@ -116,7 +116,7 @@ export default function HomePage() {
       <main className="max-w-lg mx-auto py-4 p-5 sm:px-0">
         <header>
           <nav className="mb-5 flex justify-between items-center">
-            <div className="font-bold border">Xsenses</div>
+            <div className="font-bold border">Your Expenses</div>
 
             <button className="font-medium" onClick={logout}>
               Logout
