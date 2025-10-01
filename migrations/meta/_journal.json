@@ -29,6 +29,20 @@
       "when": 1755303317856,
       "tag": "0003_misty_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1756028242554,
+      "tag": "0004_ancient_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1756803914421,
+      "tag": "0005_demonic_microbe",
+      "breakpoints": true
     }
   ]
 }

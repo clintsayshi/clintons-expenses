@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../../utils/supabaseClient";
-import { useAuth } from "../../../components/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
@@ -19,7 +18,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { user } = useAuth();
   const router = useRouter();
 
   const {
@@ -40,6 +38,7 @@ export default function SignupPage() {
       setLoading(true);
       setError(null);
 
+      const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
         email: data.email,
         options: {
@@ -56,6 +55,10 @@ export default function SignupPage() {
 
     return (
       <form onSubmit={handleSubmit(requestOtp)}>
+        <p className="text-gray-600 mb-5">
+          Please enter your email and name to receive OTP.
+        </p>
+
         <div className="flex flex-col mb-4">
           <label htmlFor="email">Email</label>
           <input
@@ -99,6 +102,7 @@ export default function SignupPage() {
     const handleVerifyOtp = async (data: { otp: string }) => {
       setError(null);
 
+      const supabase = createClient();
       const { error } = await supabase.auth.verifyOtp({
         email: email,
         token: data.otp,
@@ -108,12 +112,16 @@ export default function SignupPage() {
       if (error) {
         setError(error.message);
       } else {
-        router.push("/home");
+        router.push("/expenses");
       }
     };
 
     return (
       <form onSubmit={handleSubmit(handleVerifyOtp)}>
+        <p className="text-gray-600 mb-5">
+          Please enter your email and name to receive OTP.
+        </p>
+
         <div className="flex flex-col mb-4">
           <label htmlFor="otp">Enter One Time Pin</label>
           <input
@@ -139,22 +147,17 @@ export default function SignupPage() {
     );
   };
 
-  useEffect(() => {
-    if (user) {
-      router.push("/home");
-    }
-  }, [user, router]);
-
-  if (user) {
-    return null;
-  }
-
   return (
-    <div style={{ maxWidth: 400, margin: "auto", padding: 32 }}>
-      <h2>Sign Up / Log In</h2>
-      {step === "email" && <SendOtp />}
-      {step === "otp" && <VerifyOtp />}
-      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
+    <div className=" mx-auto max-w-md py-10 px-6 sm:py-32">
+      <header>
+        <h1>Log in</h1>
+      </header>
+
+      <div>
+        {step === "email" && <SendOtp />}
+        {step === "otp" && <VerifyOtp />}
+        {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
+      </div>
     </div>
   );
 }

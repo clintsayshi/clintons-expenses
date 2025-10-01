@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/utils/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { createOrDontUser, getUserById } from "@/handlers/users/users.handlers";
 
 // Create user if not exist
@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     const jwtToken = authHeader.substring(7);
 
     // Verify the JWT token and get user
+    const supabase = createClient();
     const {
       data: { user },
       error: authError,
@@ -40,12 +41,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("we get here: ", name, email);
-
-    // Insert the expenses into the database
-    const result = await createOrDontUser({ name, email, userId: user.id });
-
-    console.log("the results", result);
+    // Create user record in the database
+    await createOrDontUser({ name, email, userId: user.id });
 
     return NextResponse.json(
       {
@@ -77,6 +74,7 @@ export async function GET(request: NextRequest) {
     const jwtToken = authHeader.substring(7);
 
     // Verify the JWT token and get user
+    const supabase = createClient();
     const {
       data: { user },
       error: authError,

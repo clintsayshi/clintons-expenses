@@ -1,8 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../../utils/supabaseClient";
-import { useAuth } from "../../../components/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
@@ -22,7 +21,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { user } = useAuth();
 
   const emailForm = useForm({
     resolver: zodResolver(emailSchema),
@@ -41,6 +39,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email: data.email,
       options: {
@@ -58,6 +57,7 @@ export default function LoginPage() {
   async function resendOtp() {
     if (!email) throw new Error("Email is required");
 
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -73,6 +73,7 @@ export default function LoginPage() {
   const handleVerifyOtp = async (data: { otp: string }) => {
     setError(null);
 
+    const supabase = createClient();
     const { error } = await supabase.auth.verifyOtp({
       email: email,
       token: data.otp,
@@ -123,16 +124,6 @@ export default function LoginPage() {
       router.push("/home");
     }
   };
-
-  useEffect(() => {
-    if (user) {
-      router.push("/home");
-    }
-  }, [user, router]);
-
-  if (user) {
-    return null;
-  }
 
   return (
     <div className=" mx-auto max-w-md py-10 px-6 sm:py-32">

@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/client";
+
 import {
-  createExpense,
-  getExpensesByUserId,
+  addExpenseItem,
+  deleteExpense,
+  getExpenseById,
 } from "@/handlers/expenses/expenses.handlers";
 
 export async function GET(request: NextRequest) {
+  // Extract expenseId from the URL
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const expenseId = parts[parts.length - 1];
+
   try {
     // Get the authorization header
     const authHeader = request.headers.get("authorization");
@@ -33,7 +40,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await getExpensesByUserId(user.id);
+    const result = await getExpenseById(expenseId);
 
     return NextResponse.json({
       expenses: result,
@@ -47,29 +54,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Helper function to extract the JWT token from the request
-function getAuthToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Missing or invalid authorization header");
-  }
-  return authHeader.substring(7);
-}
-
 export async function POST(request: NextRequest) {
-  try {
-    const jwtToken = getAuthToken(request);
+  // Extract expenseId from the URL
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const expenseId = parts[parts.length - 1];
 
-    /* const authHeader = request.headers.get("authorization");
+  try {
+    // Get the authorization header
+    const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         { error: "Missing or invalid authorization header" },
         { status: 401 }
       );
-    } */
+    }
 
     // Extract the JWT token
-    //const jwtToken = authHeader.substring(7);
+    const jwtToken = authHeader.substring(7);
 
     // Verify the JWT token and get user
     const supabase = createClient();
@@ -86,26 +88,60 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the request body
-    const { name } = await request.json();
+    const { name, amount = 100.0 } = await request.json();
 
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (!name || !amount) {
+      return NextResponse.json(
+        { error: "Name and amount are required" },
+        { status: 400 }
+      );
     }
 
-    // Use the authenticated user's ID
-    const userId = user.id;
-
-    // Insert the expense into the database (amount will be calculated from items)
-    await createExpense({ name, userId, amount: 0 });
+    // Insert the expenses into the database
+    await addExpenseItem(expenseId, name, amount);
 
     return NextResponse.json(
       {
-        message: "Expense created successfully",
+        message: "Expense item created successfully",
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error creating expense:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  // Extract expenseId from the URL
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const expenseId = parts[parts.length - 1];
+
+  try {
+    // Parse the request body
+
+    if (!expenseId) {
+      return NextResponse.json(
+        { error: "Expense ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Insert the expenses into the database
+    await deleteExpense(expenseId);
+
+    return NextResponse.json(
+      {
+        message: "Expense item deleted successfully",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error deleting expense:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
