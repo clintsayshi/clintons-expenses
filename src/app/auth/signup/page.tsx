@@ -93,8 +93,6 @@ export default function LoginPage() {
       }
 
       if (data.session?.user) {
-        console.log("creating user");
-
         // Create user record in the database
         const response = await fetch("/api/users", {
           method: "POST",
@@ -116,12 +114,12 @@ export default function LoginPage() {
 
         if (response.ok) {
           const user = await response.json();
-          console.log("User created successfully:", user);
+
           setMessage("User created successfully");
         }
       }
 
-      router.push("/home");
+      router.push("/expenses");
     }
   };
 
