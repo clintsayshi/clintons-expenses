@@ -3,10 +3,18 @@
 import { createClient } from "@/lib/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 //import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Expense = {
   id: string;
@@ -32,6 +40,8 @@ export default function ExpenseList() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [expenses, setExpenses] = useState<Array<Expense>>([]);
+  //const [dropdownOpen, setDropdownOpen] = useState(false);
+  //const dropdownRef = useRef<HTMLDivElement>(null);
   //const router = useRouter();
 
   const {
@@ -51,11 +61,13 @@ export default function ExpenseList() {
     try {
       setLoading(true);
       // Get the current user's JWT token
-      const { data } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
       const jwtToken = data?.session?.access_token;
 
       if (!jwtToken) {
-        throw new Error("Missing JWT token");
+        console.log(error);
+        return;
+        //throw new Error("Missing JWT token");
       }
 
       const response = await fetch("/api/expenses", {
@@ -71,9 +83,9 @@ export default function ExpenseList() {
 
       const json = await response.json();
       setExpenses(json.expenses);
-      setExpenses(json.expenses);
     } catch {
       // Error fetching expenses
+      console.log("Error fetching expenses");
     } finally {
       setLoading(false);
     }
@@ -126,13 +138,49 @@ export default function ExpenseList() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    redirect("/auth/login");
   };
+
+  const handleProfile = () => {
+    // TODO: Navigate to profile page
+    console.log("Navigate to profile");
+  };
+
+  // Close dropdown when clicking outside
+  /*   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []); */
 
   return (
     <div>
       <header className="pt-5 flex justify-between items-center mb-5">
         <h1 className="text-xl font-semibold ">MoneyRight</h1>
-        <button onClick={handleSignOut}>Logout</button>
+
+        {/* Avatar with Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar className="cursor-pointer">
+              <AvatarImage src="" alt="User" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <form className="mb-5" onSubmit={handleSubmit(handleAddExpense)}>

@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import ExpensesList from "./_components/ExpenseList";
 import ExpenseDetails from "./_components/ExpenseDetails";
 import { createClient } from "@/lib/supabase/client";
@@ -22,9 +23,9 @@ export default function ExpensesLayout({
     const { data, error } = await supabase.auth.getClaims();
 
     if (error || !data?.claims) {
-      console.log("Error fetching user: ", error);
-
       router.push("/auth/login");
+    } else {
+      setLoading(false);
     }
   }
 
@@ -34,23 +35,21 @@ export default function ExpensesLayout({
     handler();
     window.addEventListener("resize", handler);
 
-    handleSignOut().finally(() => {
-      setLoading(false);
-    });
+    handleSignOut();
+
     return () => window.removeEventListener("resize", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex flex-col justify-center items-center gap-5 h-screen">
+        <Spinner />
         <p>MoneyRight</p>
       </div>
     );
-  }
-
-  if (isDesktop) {
-    //const expenseId = pathname.split("/")[2]; // /expenses/[expenseId]
+  } else if (isDesktop) {
+    // const expenseId = pathname.split("/")[2]; // /expenses/[expenseId]
     // If you want to get the id from the route using Next.js modules, you can use the `useParams` hook from "next/navigation".
     // However, since this is a layout and you are already using usePathname, you can also use useParams for more robust param extraction:
     // import { useParams } from "next/navigation";

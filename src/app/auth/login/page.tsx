@@ -16,13 +16,14 @@ const otpSchema = z.object({
 export default function SignupPage() {
   const [step, setStep] = useState<"email" | "otp">("email");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
   const {
     handleSubmit,
     formState: { isSubmitting, isSubmitSuccessful },
+    setError,
     watch,
     register,
   } = useForm({
@@ -36,7 +37,6 @@ export default function SignupPage() {
   const SendOtp = () => {
     const requestOtp = async (data: { email: string }) => {
       setLoading(true);
-      setError(null);
 
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
@@ -47,7 +47,10 @@ export default function SignupPage() {
       });
       setLoading(false);
       if (error) {
-        setError(error.message);
+        setError("email", {
+          type: "manual",
+          message: "Error requesting OTP, Try again later!",
+        });
       } else {
         setStep("otp");
       }
@@ -84,24 +87,22 @@ export default function SignupPage() {
             OTP sent! Check your email.
           </div>
         )}
+
+        {!isSubmitSuccessful && (
+          <div className="">Failed to log in. Try again later!</div>
+        )}
       </form>
     );
   };
 
   // Verify OTP
   const VerifyOtp = () => {
-    const {
-      handleSubmit,
-      formState: { isSubmitting, isSubmitSuccessful },
-      register,
-    } = useForm({
+    const otpForm = useForm({
       resolver: zodResolver(otpSchema),
       defaultValues: { otp: "" },
     });
 
     const handleVerifyOtp = async (data: { otp: string }) => {
-      setError(null);
-
       const supabase = createClient();
       const { error } = await supabase.auth.verifyOtp({
         email: email,
@@ -110,14 +111,17 @@ export default function SignupPage() {
       });
 
       if (error) {
-        setError(error.message);
+        otpForm.setError("otp", {
+          type: "manual",
+          message: "Error verifying OTP, Try again later!",
+        });
       } else {
         router.push("/expenses");
       }
     };
 
     return (
-      <form onSubmit={handleSubmit(handleVerifyOtp)}>
+      <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)}>
         <p className="text-gray-600 mb-5">
           Please enter your email and name to receive OTP.
         </p>
@@ -128,7 +132,7 @@ export default function SignupPage() {
             id="otp"
             type="text"
             placeholder="Enter OTP from email"
-            {...register("otp")}
+            {...otpForm.register("otp")}
             required
             className="border-gray-600 border px-2 py-1"
           />
@@ -137,12 +141,18 @@ export default function SignupPage() {
         <button
           type="submit"
           className="w-full py-2 hover:bg-black hover:text-white border"
-          disabled={isSubmitting}
+          disabled={otpForm.formState.isSubmitting}
         >
           {isSubmitting ? "Verifying..." : "Verify OTP"}
         </button>
 
-        {isSubmitSuccessful && <div className="">Logged in successfully</div>}
+        {otpForm.formState.isSubmitSuccessful && (
+          <div className="">Logged in successfully</div>
+        )}
+
+        {!otpForm.formState.isSubmitSuccessful && (
+          <div className="">Failed to log in. Try again later!</div>
+        )}
       </form>
     );
   };
@@ -156,7 +166,6 @@ export default function SignupPage() {
       <div>
         {step === "email" && <SendOtp />}
         {step === "otp" && <VerifyOtp />}
-        {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
       </div>
     </div>
   );

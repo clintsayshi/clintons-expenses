@@ -83,8 +83,6 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      //
-
       const { data, error } = await supabase.auth.getSession();
 
       // create user record /api/users
@@ -108,13 +106,10 @@ export default function LoginPage() {
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          console.log("Error creating user:", error);
+          console.log("Error creating user");
         }
 
         if (response.ok) {
-          const user = await response.json();
-
           setMessage("User created successfully");
         }
       }
