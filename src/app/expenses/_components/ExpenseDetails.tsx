@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { createClient } from "@/lib/supabase/client";
-//import GroceryList from "./Groceries";
+import GroceryList from "./Groceries";
 
 type ExpenseItem = {
   id: string;
@@ -210,7 +210,7 @@ export default function ExpenseDetails({ expenseId }: { expenseId: string }) {
         </button>
       </form>
 
-      {/*  <GroceryList expenseId={expenseId} /> */}
+      <GroceryList expenseId={expenseId} />
 
       <ul className="mt-4 space-y-2">
         {loading ? (
